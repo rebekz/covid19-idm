@@ -1,6 +1,6 @@
-# Infectious Disease Modeling Platform
+# COVID-19 Infectious Disease Modeling Platform
 
-AI-powered infectious disease modeling tools for spread forecast, intervention model, non-pharmaceutical interventions (NPIs).
+AI-powered infectious disease modeling tools for spread forecast and simulation.
 
 **Disclaimer:**
 As we're not Epidemiologist thus methodology being used here are based on published literature and best practices.
@@ -34,16 +34,11 @@ $ make docker-test
 
 `api`: RESTful api component use for consuming metric provided by the platform or play with the model such as SEIR model.
 
-# Showcase
-
-* `api` url: http://10.1.0.11:8000/v1/docs
-* `dashboard` url: http://10.1.0.11:8501
-
 #  Usage
 
 ## Running forecast pipeline
 
-This command for launch `forecast` pipeline. You need to download data first using `Download data from db_disease_outbreak` command
+This command for launch `forecast` pipeline
 
 ```bash
 $ python manage.py idm pipeline forecast conf/config.yml --src-from local
@@ -51,7 +46,7 @@ $ python manage.py idm pipeline forecast conf/config.yml --src-from local
 
 ## Running infer_rt pipeline
 
-This command for launch `infer_rt` pipeline. You need to download data first using `Download data from db_disease_outbreak` command
+This command for launch `infer_rt` pipeline
 
 ```bash
 $ python manage.py idm pipeline infer_rt conf/config.yml --src-from local
@@ -117,7 +112,6 @@ ForecastModel:
 API:
   backend_cors_origin:
     - http://localhost:8000
-    - http://10.1.0.11:8000
   forecast_file_path: "data/cumulative_confirmed_forecast.parquet"
   r_t_file_path: "data/confirmed_rt.parquet"
 ```
