@@ -1,0 +1,12 @@
+
+---
+- hosts: localhost
+  vars:
+    _config_file: "{{ lookup('env', 'config_file') }}"
+    _idm_port: "{{ lookup('env', 'idm_port') }}"
+  tasks:
+    - name: create supervisord conf
+      template:
+        src: "{{ playbook_dir }}/template/supervisord.j2"
+        dest: "{{ playbook_dir }}/../supervisord.conf"
+

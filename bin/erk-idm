@@ -1,0 +1,121 @@
+#!/bin/bash
+
+PORT=8000
+
+set -eo pipefail
+
+# DIR is the base directory containing bin and lib
+DIR_ROOT="$( pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null && pwd )"
+
+POSITIONALS=()
+VENV_LOC=${VENV:-./.venv}
+PYTHON_LOC=${PYTHON_LOC:-"$(which python)"}
+WITH_DOCKER=${WITH_DOCKER:-"0"}
+IMAGE_NAME="eurekaai/ai_idm:v1"
+DOCKER_CPU=${DOCKER_CPU:-"2"}
+DOCKER_MEM=${DOCKER_MEM:-"512m"}
+LOG_PATH=$DIR
+USAGE=$(cat <<-EOF
+Usage: $0 command [ options ]
+
+Parameters:
+    command   command to execute.
+              current available commands:
+             - start-api --config [] --data []
+
+Other options are provided, to get the list of options:
+    $0 command --help
+EOF
+)
+
+usage() {
+    echo "$USAGE" 1>&2; exit 1
+}
+
+
+while [[ $# -gt 0 ]]; do
+    key=$1
+    case $key in
+        -p|--port)
+            PORT="$2"
+            shift
+            shift
+            ;;
+        --config)
+            CONFIG="$2"
+            shift
+            shift
+            ;;
+        --data)
+            DATA="$2"
+            shift
+            shift
+            ;;
+        --log)
+            LOG_PATH="$2"
+            shift
+            shift
+            ;;
+        *)
+            # unknown option / positional args
+            # preserve quote for multi-word arguments
+            case "$1" in
+                *\ * )
+                    POSITIONALS+=("'$1'")
+                    ;;
+                *)
+                    POSITIONALS+=("$1")
+                    ;;
+            esac
+            shift
+            ;;
+    esac
+done
+
+# restore positional parameters
+set -- "${POSITIONALS[@]}"
+
+# 1 required positional arg
+if [ "$#" -lt "1" ]; then
+    usage
+fi
+
+COMMAND=$1
+if [[ "$COMMAND" != "stop-api" ]] && [[ "$COMMAND" != "start-api" ]]; then
+    echo "Invalid command: $COMMAND"
+    usage
+fi
+
+if [[ "$COMMAND" == "stop-api" ]]; then
+    if [[ "$WITH_DOCKER" == "1" ]]; then
+        docker stop ai-idm
+    fi
+fi
+
+if [[ "$COMMAND" == "start-api" ]]; then
+    echo "WITH_DOCKER=${WITH_DOCKER}"
+    if [[ "$WITH_DOCKER" == "1" ]]; then
+        if [[ "$DATA" != "" ]]; then
+            docker create --name ai-idm --rm -v $DIR:/code -ti -w /code --shm-size=${DOCKER_MEM} --cpus=${DOCKER_CPU} \
+            -v $DATA:/opt/data \
+            -v $LOG_PATH:/opt/log \
+            -e VIRTUAL_ENV=/miniconda \
+            -e VENV=/miniconda \
+            -e config_file="$(basename $CONFIG)" \
+            -e idm_port=$PORT \
+            -p $PORT:$PORT \
+            $IMAGE_NAME
+            docker start ai-idm
+            docker exec ai-idm mkdir /opt/config
+            docker cp $CONFIG ai-idm:/opt/config
+            docker exec ai-idm pip install supervisor
+            docker exec ai-idm ansible-playbook playbook/install_idm_module.yml
+            docker exec ai-idm ansible-playbook playbook/create_supervisord_conf.yml
+            docker exec ai-idm supervisord -c supervisord.conf
+        fi
+    fi
+    if [[ "$WITH_DOCKER" == "0" ]]; then
+        $VENV_LOC/bin/python manage.py api start $CONFIG --port $PORT
+    fi
+fi

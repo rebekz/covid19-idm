@@ -1,0 +1,35 @@
+# Gradle stuff
+.gradle/
+!gradle-wrapper.jar
+gradle-home/
+
+# Project build
+build/
+libs/
+dist/
+model/
+dask-worker-space/
+dev_notebook/
+.undodir/
+
+# Spark and friends
+derby.log
+metastore_db/
+spark-warehouse/
+
+# Misc
+.DS_STORE
+lib/external/patch-*.jar
+Session.vim
+
+# Python
+*.pyc
+.pytest_cache/
+.python-version
+.venv/
+__pycache__/
+modelengine.egg-info/
+.ipynb_checkpoints
+
+#IDE stuff
+.idea/

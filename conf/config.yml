@@ -1,0 +1,43 @@
+---
+ForecastModel:
+  input:
+    input_table: db_disease_outbreak
+    date_col: date_id
+    geoid_col: province
+    loc_granularity:
+      - province
+    metric_val_col: metric_value
+    metric_granularity_col: metric_granularity
+    metric_name_col: metric_name
+    hour_id_col: hour_id
+  output:
+    output_path: data
+  model_params:
+    bayesian:
+      c0_mu: 100
+      c0_sigma: 10
+      r_mu: 0.2
+      r_mu_sigma: 0.1
+      r_sigma: 0.5
+      k_mu: 30000
+      k_mu_sigma: 30000
+      k_sigma: 1000
+      forecast_days: 365
+      model_path: model
+      cores: 2
+      chains: 2
+      tune: 5
+      draws: 5
+      target_accept: 0.8
+    curvefit:
+      maxfev: 100000
+      forecast_days: 30
+  with_train: true
+  methods:
+    - curvefit
+API:
+  backend_cors_origin:
+    - http://localhost:8000
+    - http://10.1.0.11:8000
+  forecast_file_path: "data/cumulative_confirmed_forecast.parquet"
+  rt_file_path: "data/confirmed_rt.parquet"

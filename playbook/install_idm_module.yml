@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  vars:
+    _lib: "{{ idm_lib_folder if idm_lib_folder is defined else '../lib' }}"
+  tasks:
+    - name: get filename
+      find:
+        paths: "{{ _lib }}"
+        file_type: file
+        patterns: "*.whl"
+      register: wheel
+    - name: install wheel file
+      vars:
+        file: "{{ wheel.files[0].path }}"
+      command:
+        cmd: "pip install --no-deps {{ file }}"
+

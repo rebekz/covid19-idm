@@ -1,0 +1,6 @@
+API:
+  backend_cors_origin:
+    - http://localhost:8000
+    - http://10.1.0.11:8000
+  forecast_file_path: "/opt/data/cumulative_confirmed_forecast.parquet"
+  rt_file_path: "/opt/data/confirmed_rt.parquet"
